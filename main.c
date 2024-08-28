@@ -1,103 +1,95 @@
-#include "main.h"
+#include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <string.h>
-#include <sys/types.h>
+#include <unistd.h>
 #include <sys/wait.h>
+#include "main.h"
+
+#define MAX_LINE 1024
+
 /**
-* read_command - Reads the command input by the user.
-*
-* Description: This function reads a line of input from the user
-* and removes the newline character at the end.
-*
-* Return: A pointer to the command line input by the user,
-* or NULL if there was an error.
-*/
-char *read_command(void)
+ * execute_command - Executes the given command by forking a process.
+ * @argv: Array of strings representing the command and its arguments.
+ */
+void execute_command(char **argv)
 {
-char *line = NULL;
-size_t len = 0;
-ssize_t nread;
-nread = getline(&line, &len, stdin);
-if (nread == -1)
-{
-if (feof(stdin))
-{
-free(line);
-exit(EXIT_SUCCESS); /* End of file */
+    if (argv[0] != NULL)
+    {
+        pid_t pid = fork_process(argv);
+        if (pid > 0)
+        {
+            int status;
+            waitpid(pid, &status, 0);
+        }
+    }
 }
-perror("getline");
-exit(EXIT_FAILURE);
-}
-if (line[nread - 1] == '\n') /* Remove newline character */
-line[nread - 1] = '\0';
-return (line);
-}
+
 /**
-* fork_process - Forks a process to execute a command.
-* @line: The command to execute.
-*
-* Return: The PID of the child process.
-*/
-pid_t fork_process(char *line)
+ * fork_process - Creates a child process to execute the command.
+ * @argv: Array of strings representing the command and its arguments.
+ * 
+ * Return: The PID of the child process.
+ */
+pid_t fork_process(char **argv)
 {
-pid_t pid;
-pid = fork();
-if (pid == -1)
-{
-perror("fork");
-exit(EXIT_FAILURE);
+    pid_t pid = fork();
+    if (pid == 0)
+    {
+        execute_child(argv);
+    }
+    return pid;
 }
-return (pid);
-}
+
 /**
-* execute_child - Executes the command in the child process.
-* @line: The command to execute.
-*/
-void execute_child(char *line)
+ * execute_child - Replaces the child process image with the command.
+ * @argv: Array of strings representing the command and its arguments.
+ */
+void execute_child(char **argv)
 {
-char *argv[] = {line, NULL};
-if (execve(line, argv, NULL) == -1)
-{
-perror("./shell");
-exit(EXIT_FAILURE);
+    execvp(argv[0], argv);
+    perror("execvp");
+    exit(EXIT_FAILURE);
 }
-}
+
 /**
-* execute_command - Executes the command.
-* @line: The command to execute.
-*/
-void execute_command(char *line)
-{
-pid_t pid;
-int status;
-pid = fork_process(line);
-if (pid == 0) /* Child process */
-{
-execute_child(line);
-}
-else /* Parent process */
-{
-wait(&status);
-}
-}
-/**
-* main - Simple UNIX command line interpreter.
-*
-* Description: A basic shell that executes commands
-* from the user input.
-*
-* Return: Always 0 (Success)
-*/
+ * main - Entry point for the shell.
+ * 
+ * Return: Always 0 (Success).
+ */
 int main(void)
 {
-char *line;
-while (1)
-{
-printf("#cisfun$ ");
-line = read_command();
-execute_command(line);
-free(line);
-}
-return (0);
+    char line[MAX_LINE];
+    char *argv[MAX_LINE / 2 + 1];
+    char *token;
+    int i;
+
+    while (1)
+    {
+        printf("#cisfun$ ");
+        if (fgets(line, sizeof(line), stdin) == NULL)
+        {
+            if (feof(stdin))
+            {
+                printf("\n");
+                break; /* Handle EOF (Ctrl+D) */
+            }
+            perror("fgets");
+            exit(EXIT_FAILURE);
+        }
+
+        /* Tokenize the input line */
+        i = 0;
+        token = strtok(line, " \n");
+        while (token != NULL && i < MAX_LINE / 2 + 1)
+        {
+            argv[i++] = token;
+            token = strtok(NULL, " \n");
+        }
+        argv[i] = NULL;
+
+        /* Execute the command */
+        execute_command(argv);
+    }
+
+    return 0;
 }
