@@ -1,95 +1,72 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <sys/wait.h>
 #include "main.h"
-
-#define MAX_LINE 1024
-
 /**
- * execute_command - Executes the given command by forking a process.
- * @argv: Array of strings representing the command and its arguments.
- */
-void execute_command(char **argv)
-{
-    if (argv[0] != NULL)
-    {
-        pid_t pid = fork_process(argv);
-        if (pid > 0)
-        {
-            int status;
-            waitpid(pid, &status, 0);
-        }
-    }
-}
-
-/**
- * fork_process - Creates a child process to execute the command.
- * @argv: Array of strings representing the command and its arguments.
- * 
- * Return: The PID of the child process.
- */
-pid_t fork_process(char **argv)
-{
-    pid_t pid = fork();
-    if (pid == 0)
-    {
-        execute_child(argv);
-    }
-    return pid;
-}
-
-/**
- * execute_child - Replaces the child process image with the command.
- * @argv: Array of strings representing the command and its arguments.
- */
-void execute_child(char **argv)
-{
-    execvp(argv[0], argv);
-    perror("execvp");
-    exit(EXIT_FAILURE);
-}
-
-/**
- * main - Entry point for the shell.
- * 
- * Return: Always 0 (Success).
- */
+* main - Entry point for the shell.
+*
+* Return: Always 0.
+*/
 int main(void)
 {
-    char line[MAX_LINE];
-    char *argv[MAX_LINE / 2 + 1];
-    char *token;
-    int i;
-
-    while (1)
-    {
-        printf("#cisfun$ ");
-        if (fgets(line, sizeof(line), stdin) == NULL)
-        {
-            if (feof(stdin))
-            {
-                printf("\n");
-                break; /* Handle EOF (Ctrl+D) */
-            }
-            perror("fgets");
-            exit(EXIT_FAILURE);
-        }
-
-        /* Tokenize the input line */
-        i = 0;
-        token = strtok(line, " \n");
-        while (token != NULL && i < MAX_LINE / 2 + 1)
-        {
-            argv[i++] = token;
-            token = strtok(NULL, " \n");
-        }
-        argv[i] = NULL;
-
-        /* Execute the command */
-        execute_command(argv);
-    }
-
-    return 0;
+char *line = NULL;
+size_t len = 0;
+ssize_t nread;
+while (1)
+{
+printf("#cisfun$ ");
+nread = getline(&line, &len, stdin);
+if (nread == -1)
+{
+if (feof(stdin))
+{
+free(line);
+exit(0); /* Exit on Ctrl+D */
+}
+perror("getline");
+free(line);
+exit(EXIT_FAILURE);
+}
+if (line[nread - 1] == '\n')
+line[nread - 1] = '\0'; /* Remove newline character */
+if (line[0] != '\0')
+execute_command(line);
+}
+free(line);
+return (0);
+}
+/**
+* execute_command - Forks and executes the command in a child process.
+* @line: The command line to execute.
+*/
+void execute_command(char *line)
+{
+pid_t pid = fork_process(line);
+if (pid == 0) /* Child process */
+{
+char *argv[2];   /* Declare the array */
+argv[0] = line;  /* Assign the command to the first element */
+argv[1] = NULL;  /* Set the second element to NULL */
+if (execve(line, argv, NULL) == -1)
+{
+perror("./shell");
+exit(EXIT_FAILURE);
+}
+}
+else if (pid < 0) /* Error forking */
+{
+perror("fork");
+}
+else /* Parent process */
+{
+wait(NULL); /* Wait for child to finish */
+}
+}
+/**
+* fork_process - Forks the current process.
+* @line: The command line to execute (not used directly here).
+*
+* Return: The PID of the child process.
+*/
+pid_t fork_process(char *line)
+{
+(void)line; /* Unused parameter */
+return (fork());
 }
