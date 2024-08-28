@@ -2,7 +2,8 @@
 /**
 * main - Entry point
 *
-* Description: At the momemt this is a program that is simple and passes the betty-style check.
+* Description: At the momemt this is a program
+* that is simple and passes the betty-style check.
 *
 * Return: Always 0 (Success)
 */
