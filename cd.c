@@ -1,53 +1,51 @@
 #include "shell.h"
 
-/**
- * change_directory - Implements the cd built-in command
- * @path: The path to change to
- *
- * Task 10: cd
- *
- * Description: This function changes the current directory of the process.
- */
-void change_directory(char *path)
+int handle_cd(char **args)
 {
-	static char *formal_working_dir;
-	char *wd;
+    char *dir;
+    char cwd[1024];
 
-	if (path == NULL)
-		path = getenv("HOME"); /* Default to home directory */
+    if (args[1] == NULL)
+    {
+        dir = getenv("HOME");
+        if (dir == NULL)
+        {
+            perror("cd");
+            return (-1);
+        }
+    }
+    else if (strcmp(args[1], "-") == 0)
+    {
+        dir = getenv("OLDPWD");
+        if (dir == NULL)
+        {
+            perror("cd");
+            return (-1);
+        }
+        printf("%s\n", dir);
+    }
+    else
+    {
+        dir = args[1];
+    }
 
-	else if (_strcmp(path, "-") == 0)
-	{
-		if (formal_working_dir != NULL) /*never been changed*/
-			path = formal_working_dir;
-		else
-		{
-			perror("cd failed: Your are in the root");
-			return;
-		}
-	}
-	else
-	{
-		/*updating the formal_working_dir with pwd before cd*/
-		wd = getcwd(NULL, 0);
+    if (getcwd(cwd, sizeof(cwd)) == NULL)
+    {
+        perror("getcwd");
+        return (-1);
+    }
 
-		if (wd != NULL)
-		{
-			if (formal_working_dir != NULL)
-				free(formal_working_dir);
-			formal_working_dir = wd;
-		}
-	}
-	if (chdir(path) == -1)
-		perror("cd failed");
-	else
-	{
-		wd = getcwd(NULL, 0);
+    if (chdir(dir) != 0)
+    {
+        perror("cd");
+        return (-1);
+    }
 
-		if (wd != NULL)
-		{
-			setenv("PWD", wd, 1);
-			free(wd);
-		}
-	}
+    _setenv("OLDPWD", cwd, 1);
+    if (getcwd(cwd, sizeof(cwd)) != NULL)
+    {
+        _setenv("PWD", cwd, 1);
+    }
+
+    return (0);
 }

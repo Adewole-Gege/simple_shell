@@ -13,5 +13,5 @@ void handle_env(void)
     {
         printf("%s\n", *env);
         env++;
-}
+    }
 }
