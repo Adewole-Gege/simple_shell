@@ -1,95 +1,63 @@
 #ifndef SHELL_H
 #define SHELL_H
 
-#include <stdio.h>      /* Standard I/O functions*/
-#include <stdlib.h>     /* Standard library functions*/
-#include <unistd.h>     /* POSIX API functions (e.g., fork, exec, etc.)*/
-#include <string.h>     /* String handling functions*/
-#include <sys/types.h>  /* Data types used in system calls*/
-#include <errno.h>      /* Error number definitions*/
-#include <sys/types.h>  /* Data types used in system calls*/
-#include <sys/wait.h>   /* Macros related to process termination*/
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <sys/stat.h>
 #include <fcntl.h>
+#include <errno.h>
+#include <dirent.h>
 
 extern char **environ;
 
-/* Function prototypes */
+/* Task 0.1: Core Shell Functionality */
+void display_prompt(void);                     /* Displays the shell prompt */
+void execute_command(char **args);             /* Executes external commands */
 
-/* Starts the shell in interactive mode */
-/* Task 1: Simple Shell 0.1 */
-void shell_interactive(void);
+/* Task 0.1.1: Custom getline function */
+ssize_t my_getline(char **lineptr, size_t *n, FILE *stream); /* Custom getline function */
 
-/* Runs the shell in non-interactive mode */
-/* Task 1: Simple Shell 0.1 */
-void shell_non_interactive(char *filename);
+/* Task 0.2.1: Custom tokenization function */
+char **custom_tokenize(char *line);            /* Custom tokenization of command input */
 
-/* Function to execute a command */
-/* Task 2: Simple Shell 0.2 */
-int execute_command(char *command);
+/* Task 0.4: Handle the exit built-in */
+void handle_exit(char **args);                 /* Handles the exit built-in command */
 
-/* Additional tasks declarations */
+/* Task 0.4.1: Handle exit with status */
+void handle_exit_with_status(char **args);     /* Handles exit with status */
 
-/* Task 3: Simple Shell 0.3 */
-char *find_command_in_path(char *command);
+/* Task 1.0: Handle the env built-in */
+void handle_env(void);                         /* Handles the env built-in command */
 
-/* Task 4: Simple Shell 0.4 - Exit built-in command handled in execute_command */
+/* Task 1.0: Handle setenv and unsetenv */
+int handle_setenv(const char *name, const char *value, int overwrite);  /* Handles setenv */
+int handle_unsetenv(const char *name);         /* Handles unsetenv */
 
-/* Task 5: Simple Shell 1.0 - Print environment*/
-void print_env(void);
+/* Task 1.0: Handle the cd command */
+int handle_cd(char **args);                    /* Handles the cd built-in command */
 
-/* Task 6: Simple Shell 0.1.1 - Custom getline*/
-ssize_t my_getline(char **lineptr, size_t *n, FILE *stream);
+/* Task 1.0: Handle command separators (;) */
+int handle_command_separators(char *line);     /* Handles command separators (e.g., ;) */
 
-/* Task 7: Simple Shell 0.2.1 - Custom strtok*/
-char *_strtok(char *str, char *delim);
+void handle_logical_operators(char *line);     /* Handles logical operators (&& and ||) */
 
-/* Task 8: Exit with arguments*/
-void _exiting(char *command);
+/* Task 1.0: Handle aliases */
+int handle_alias(char **args);                 /* Handles alias built-in command */
 
-/* Task 9: setenv, unsetenv */
-int my_setenv(const char *name, const char *value, int overwrite);
-int my_unsetenv(const char *name);
+/* Task 1.0: Handle variable replacement ($?, $$, etc.) */
+char *handle_variable_replacement(char *line, int last_exit_status); /* Handles variable replacement */
 
-/* Task 10: cd command */
-void change_directory(char *path);
+/* Task 1.0: Handle comments (#) */
+char *remove_comments(char *line);             /* Removes comments from input */
 
-/* Task 11: Command Separator */
-void handle_command_separator(char *command);
+/* Task 1.0: Handle file input */
+int handle_file_input(const char *filename);   /* Handles reading commands from a file */
 
-/* Task 12: Logical Operators */
-void handle_logical_operators(char *command);
-
-/* Task 13: Alias */
-void handle_alias(char **args);
-
-/* Task 14: Variable Replacement */
-void handle_variable_replacement(char *command);
-
-/* Task 15: Comments */
-void remove_comments(char *command);
-
-/* Task 16: File Input */
-void execute_file_commands(char *filename);
-
-/* Additional Utility Functions */
-char *find_command_in_path(char *command);
-void handle_exit(char *command);
-void print_env(void);
-ssize_t my_getline(char **lineptr, size_t *n, FILE *stream);
-void my_strtok(char *str, char *delim, char **tokens);
-int my_setenv(const char *name, const char *value, int overwrite);
-int my_unsetenv(const char *name);
-char **str_tockenise(char *buffer, char *del);
-void free_all(char **buffer1, char **buffer2, char *buffer3);
-char *command_check(char *command, char **path_list);
-int _printf(char *buffer);
-int _strlen(char *string);
-int _strcmp(char *first, char *second);
-size_t _strcspn(const char *line, const char *reject);
-void free_args(char **args);
-int execute_external_command(char **args);
-
-/* New function for processing input in shell_interactive */
-int process_input(char **line, size_t *len);
+/* Task 0.3: Search for commands in PATH */
+char *find_command_in_path(char *command);     /* Finds command in PATH */
 
 #endif /* SHELL_H */
