@@ -1,10 +1,6 @@
 #include "shell.h"
-#include <string.h>  /* For strdup */
-#include <stdlib.h>  /* For malloc, free, realloc */
-
-#ifndef _GNU_SOURCE
-#define _GNU_SOURCE
-#endif
+#include <string.h>  /* Include this to use strdup */
+#include <stdlib.h>  /* Include this to use malloc, free, realloc */
 
 ssize_t my_getline(char **lineptr, size_t *n, FILE *stream)
 {
