@@ -1,13 +1,8 @@
 #include "shell.h"
+#include <string.h>
+#include <stdlib.h>
+#include <sys/stat.h>
 
-/**
- * find_command_in_path - Searches for a command in the directories listed in `PATH`.
- * @command: The command to search for.
- *
- * Task 0.3: Searches for commands in `PATH`.
- *
- * Return: The full path to the command if found, otherwise NULL.
- */
 char *find_command_in_path(char *command)
 {
     char *path, *path_copy, *dir;
@@ -17,11 +12,16 @@ char *find_command_in_path(char *command)
     if (command == NULL)
         return (NULL);
 
-    /* Check if command is an absolute or relative path */
     if (command[0] == '/' || command[0] == '.')
     {
         if (stat(command, &st) == 0 && (st.st_mode & S_IXUSR))
-            return (strdup(command));
+        {
+            char *command_copy = malloc(strlen(command) + 1);
+            if (command_copy == NULL)
+                return (NULL);
+            strcpy(command_copy, command);
+            return (command_copy);
+        }
         return (NULL);
     }
 
@@ -29,9 +29,10 @@ char *find_command_in_path(char *command)
     if (path == NULL)
         return (NULL);
 
-    path_copy = strdup(path);
+    path_copy = malloc(strlen(path) + 1);
     if (path_copy == NULL)
         return (NULL);
+    strcpy(path_copy, path);
 
     dir = strtok(path_copy, ":");
     while (dir != NULL)
@@ -40,7 +41,11 @@ char *find_command_in_path(char *command)
         if (stat(full_path, &st) == 0 && (st.st_mode & S_IXUSR))
         {
             free(path_copy);
-            return (strdup(full_path));
+            char *full_path_copy = malloc(strlen(full_path) + 1);
+            if (full_path_copy == NULL)
+                return (NULL);
+            strcpy(full_path_copy, full_path);
+            return (full_path_copy);
         }
         dir = strtok(NULL, ":");
     }
