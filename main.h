@@ -4,10 +4,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <string.h>
 
-/**
- * some_function - Prototype for some function
- */
-void some_function(void);
+extern char **environ;
+
+void betty_compliant_code(void); /* Task 0 prototype */
+void simple_shell(void);         /* Task 1 prototype */
 
 #endif /* MAIN_H */
