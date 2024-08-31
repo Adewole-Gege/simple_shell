@@ -151,3 +151,5 @@ void variable_replacement(char **line, int *exe_ret)
 			old_line = new_line;
 			j = -1;
 		}
+		}
+}
